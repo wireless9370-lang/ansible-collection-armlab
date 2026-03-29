@@ -42,6 +42,10 @@ argument_specs:
             description: "The name of the NetBox cluster."
             type: "str"
             required: true
+          device:
+            description: "The name of the device the VM is assigned to"
+            type: "str"
+            required: false
           tenant:
             description: "The name of the NetBox tenant."
             type: "str"
@@ -62,6 +66,14 @@ argument_specs:
             description: "The disk size in GB."
             type: "int"
             default: 50
+          local_context_data:
+            description: "configuration context"
+            type: "dict"
+            required: false
+          custom_fields:
+            description: "custom fields"
+            type: "dict"
+            required: false
           interface_name:
             description: "Name for the primary network interface."
             type: "str"

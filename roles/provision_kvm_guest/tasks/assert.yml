@@ -4,5 +4,5 @@
 
 - assert:
     that:
-      - armlab_provision_image_folder is defined
+      - provision_kvm_guest_image_folder is defined
 

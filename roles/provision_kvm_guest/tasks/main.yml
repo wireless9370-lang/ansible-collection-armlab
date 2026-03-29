@@ -1,6 +1,10 @@
 ---
 # tasks file for provision-kvm-guest
 #
+- name: assure we know the architecture
+  setup:
+    filter:
+      - ansible_architecture
 
 - name: fetch base image
   debug:
@@ -12,21 +16,29 @@
     - storage
     - prepare_storage
 
-- name: build cloud-init image 
+- name: build cloud-init image
   import_tasks: build_cloud-init.yml
   tags:
     - cloud-init
+  when: _provision_kvm_guest_generate_cloud_init_iso
 
-- name: check for vm existence 
+- name: check for vm existence
   debug:
     msg: "check for existing config"
 
-# be sure to deply based on arch 
-- name: deploy vm 
-  shell: "{{ lookup('template', 'import_uefi_cloudinit_vm.sh.j2') }}"
+# be sure to deply based on arch
+- name: deploy nocloud vm
+  shell: "{{ lookup('template', 'import_uefi_cloudinit_nocloud_vm.sh.j2') }}"
   args:
-    creates: "/etc/libvirt/qemu/{{ armlab_provision_hostname }}.xml"
+    creates: "/etc/libvirt/qemu/{{ provision_kvm_guest_hostname }}.xml"
   tags:
     - deploy
+  when: not _provision_kvm_guest_generate_cloud_init_iso
 
-
+- name: deploy vm with iso
+  shell: "{{ lookup('template', 'import_uefi_cloudinit_vm_and_generate_iso.sh.j2') }}"
+  args:
+    creates: "/etc/libvirt/qemu/{{ provision_kvm_guest_hostname }}.xml"
+  tags:
+    - deploy
+  when: _provision_kvm_guest_generate_cloud_init_iso

@@ -1,22 +1,22 @@
 #!/bin/bash
 
-IMAGE_FORMAT={{ armlab_provision_image_format }}
-IMAGE_DIR={{ armlab_provision_image_folder }}
-MACHINE_DIR={{ armlab_provision_machine_folder }}
+IMAGE_FORMAT={{ provision_kvm_guest_image_format }}
+IMAGE_DIR={{ provision_kvm_guest_image_folder }}
+MACHINE_DIR={{ provision_kvm_guest_machine_folder }}
 ARCH={{ ansible_architecture }}
 
-VM_NAME={{ armlab_provision_hostname }}
-VM_IMAGE={{ armlab_provision_image_file }}
-MAC_ADDRESS={{ armlab_provision_mac_address }}
+VM_NAME={{ provision_kvm_guest_hostname }}
+VM_IMAGE={{ provision_kvm_guest_image_file }}
+MAC_ADDRESS={{ provision_kvm_guest_mac_address }}
 FINAL_VM_PATH="${MACHINE_DIR}/${VM_IMAGE}"
 
-VM_MEM={{ armlab_provision_memory }}
-VM_CPU={{ armlab_provision_smp }}
+VM_MEM={{ provision_kvm_guest_memory }}
+VM_CPU={{ provision_kvm_guest_smp }}
 META_DATA_PATH="${MACHINE_DIR}/${VM_NAME}-meta-data"
 USER_DATA_PATH="${MACHINE_DIR}/${VM_NAME}-user-data"
 
-NOCLOUD_URL={{ armlab_provision_nocloud_url }}
-INSTANCE_ID={{ armlab_provision_instance_id }}
+NOCLOUD_URL={{ provision_kvm_guest_nocloud_url }}
+INSTANCE_ID={{ provision_kvm_guest_instance_id }}
 
 # handled by ansible
 #cp -v "${IMAGE_DIR}/${VM_IMAGE}" "${FINAL_VM_PATH}"

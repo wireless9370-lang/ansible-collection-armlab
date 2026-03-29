@@ -10,6 +10,7 @@ cockpit_packages_base:
   - cockpit
   - cockpit-packagekit
   - cockpit-system
+  - sscg
 
 cockpit_packages_storage_base:
   - lvm2

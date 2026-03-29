@@ -1,0 +1,62 @@
+#!/bin/bash
+set -euo pipefail
+
+IMAGE_FORMAT={{ provision_kvm_guest_image_format }}
+IMAGE_DIR={{ provision_kvm_guest_image_folder }}
+MACHINE_DIR={{ provision_kvm_guest_machine_folder }}
+ARCH={{ ansible_architecture }}
+
+VM_NAME={{ provision_kvm_guest_hostname }}
+VM_IMAGE={{ provision_kvm_guest_image_file }}
+FINAL_VM_PATH="${MACHINE_DIR}/${VM_IMAGE}"
+
+VM_MEM={{ provision_kvm_guest_memory }}
+VM_CPU={{ provision_kvm_guest_smp }}
+
+MAC_ADDRESS={{ provision_kvm_guest_mac_address }}
+VM_BRIDGE={{ provision_kvm_guest_network_bridge }}
+
+META_DATA_PATH="${MACHINE_DIR}/meta-data"
+USER_DATA_PATH="${MACHINE_DIR}/user-data"
+NETWORK_CONFIG_PATH="${MACHINE_DIR}/network-config"
+CLOUD_INIT_ISO_PATH="${MACHINE_DIR}/cidata.iso"
+
+INSTANCE_ID={{ provision_kvm_guest_instance_id }}
+
+if [ ! -f "${META_DATA_PATH}" ] || [ ! -f "${USER_DATA_PATH}" ] || [ ! -f "${NETWORK_CONFIG_PATH}" ]; then
+  echo "Error: Missing cloud-init meta-data, user-data or network-config files."
+  exit 1
+fi
+
+genisoimage -output "${CLOUD_INIT_ISO_PATH}" -volid cidata -joliet -rock "${USER_DATA_PATH}" "${META_DATA_PATH}" "${NETWORK_CONFIG_PATH}"
+
+# handled by ansible
+#cp -v "${IMAGE_DIR}/${VM_IMAGE}" "${FINAL_VM_PATH}"
+
+# this method if not using url data source
+# --cloud-init meta-data=${META_DATA_PATH},user-data=${USER_DATA_PATH} \
+# also if using above... the first reboot will be a shutdown because libvirt
+# wants to detach the ISO on the 2nd boot.
+# would be beest to generate iso seperately and attach rather than use the built-in
+# --cloud-init hooks
+
+# i needed these settings on arm previously  will go back and add logic
+# --machine=virt \
+# --arch=${ARCH} \
+# --virt-type=kvm \
+virt-install \
+  --boot uefi,firmware.feature0.name=secure-boot,firmware.feature0.enabled=no \
+  --name=${VM_NAME} \
+  --virt-type=kvm \
+  --boot hd \
+  --network=bridge=${VM_BRIDGE},model=virtio,mac=${MAC_ADDRESS} \
+  --disk path=${FINAL_VM_PATH},format=${IMAGE_FORMAT},device=disk,bus=virtio,cache=default \
+  --memory=${VM_MEM} \
+  --vcpu=${VM_CPU} \
+  --os-variant debiantesting \
+  --import \
+  --autoconsole none \
+  --autostart \
+  --sysinfo system.serial="ds=nocloud-net;h=${VM_NAME};i=${INSTANCE_ID}" \
+  --disk path=${CLOUD_INIT_ISO_PATH},device=cdrom,bus=sata,readonly=on,shareable=off \
+  --check all=off

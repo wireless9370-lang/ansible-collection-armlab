@@ -1,0 +1,17 @@
+network:
+ version: 2
+ ethernets:
+  {{ provision_kvm_guest_interface_name | default("eth0") }}:
+    dhcp4: false
+    dhcp6: false
+    addresses:
+      - {{ provision_kvm_guest_ip4_address_summarized }}
+    routes:
+      - to: default
+        via: {{ provision_kvm_guest_ip4_gateway }}
+    nameservers:
+      addresses:
+        - {{ provision_kvm_guest_dns_server_1 }}
+        - {{ provision_kvm_guest_dns_server_2 }}
+    match:
+      macaddress: {{ provision_kvm_guest_mac_address }}

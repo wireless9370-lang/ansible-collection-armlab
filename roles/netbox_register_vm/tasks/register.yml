@@ -8,14 +8,22 @@
     data:
       name: "{{ vm.name }}"
       cluster: "{{ vm.cluster }}"
+      device: "{{ vm.device | default(omit) }}"
       tenant: "{{ vm.tenant }}"
       site: "{{ vm.site }}"
       vcpus: "{{ vm.vcpus }}"
       memory: "{{ vm.memory }}"
       disk: "{{ vm.disk }}"
+      local_context_data: "{{ vm.local_context_data | default(omit) }}"
+      custom_fields: "{{ vm.custom_fields | default(omit) }}"
       tags: "{{ vm.tags | default(omit) }}"
     state: present
   register: new_vm_object
+
+#  A story on netbox mac addresses
+# it used to be simple.. you could define an interface and pass the mac_address field and be good.
+# in netbox 4.2 they introduced a seperate mac address object, and introdcued a concept of primary mac address adn a list
+# the mac_address param is ignored, and the mac address as to be created and assigned to device, then primary_mac_address set afterwards.
 
 - name: "Create network interface for {{ vm.name }}"
   netbox.netbox.netbox_vm_interface:
@@ -24,7 +32,32 @@
     data:
       virtual_machine: "{{ new_vm_object.virtual_machine.id }}"
       name: "{{ vm.interface_name }}"
-      mac_address: "{{ vm.interface_mac | default(omit) }}"
+      # mac_address: "{{ vm.interface_mac | default(omit) }}"
+    state: present
+  register: new_interface_object
+  when: new_vm_object.changed
+
+- name: "Create MAC Address {{ vm.interface_mac }} for  {{ vm.name }}"
+  netbox.netbox.netbox_mac_address:
+    netbox_url: "{{ netbox_url }}"
+    netbox_token: "{{ netbox_token }}"
+    data:
+      mac_address: "{{ vm.interface_mac }}"
+      assigned_object:
+        virtual_machine: "{{ new_vm_object.virtual_machine.id }}"
+        name: "{{ vm.interface_name }}"
+    state: present
+  register: new_mac_address_object
+  when: new_vm_object.changed
+
+- name: "Set primary_mac_address on network interface for {{ vm.name }}"
+  netbox.netbox.netbox_vm_interface:
+    netbox_url: "{{ netbox_url }}"
+    netbox_token: "{{ netbox_token }}"
+    data:
+      virtual_machine: "{{ new_vm_object.virtual_machine.id }}"
+      name: "{{ vm.interface_name }}"
+      primary_mac_address: "{{ vm.interface_mac | default(omit) }}"
     state: present
   register: new_interface_object
   when: new_vm_object.changed

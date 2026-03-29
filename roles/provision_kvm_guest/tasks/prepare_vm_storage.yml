@@ -3,7 +3,7 @@
 # WARNING  this won't work the way you want if you have `connection: local` set in your playbook
 - name: create tenant directory
   file:
-    path: "{{ armlab_provision_machine_folder }}"
+    path: "{{ provision_kvm_guest_machine_folder }}"
     state: directory
   register: result_tenant_directory
   #  delegate_to: "{{ assigned_host }}"
@@ -12,8 +12,8 @@
 # only copy image if doesn't exist.  and do it on the remote host
 - name: copy base image to deployment location
   copy:
-    src: "{{ armlab_provision_image_folder}}/{{ armlab_provision_base_image }}"
-    dest: "{{ armlab_provision_machine_folder }}/{{ armlab_provision_image_file }}"
+    src: "{{ provision_kvm_guest_image_folder}}/{{ provision_kvm_guest_base_image }}"
+    dest: "{{ provision_kvm_guest_machine_folder }}/{{ provision_kvm_guest_image_file }}"
     force: no
     remote_src: yes
   register: result_copy_base_image
@@ -21,7 +21,7 @@
   #  become: yes
 
 - name: resize image to desired size
-  command: "qemu-img resize --preallocation=falloc {{ armlab_provision_machine_folder }}/{{ armlab_provision_image_file }} {{ armlab_provision_image_size }}"
+  command: "qemu-img resize --preallocation=falloc {{ provision_kvm_guest_machine_folder }}/{{ provision_kvm_guest_image_file }} {{ provision_kvm_guest_image_size }}"
   register: result_resize_image
   when: result_copy_base_image is changed
   #  delegate_to: "{{ assigned_host }}"

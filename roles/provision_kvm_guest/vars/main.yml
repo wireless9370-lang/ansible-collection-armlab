@@ -1,2 +1,4 @@
 ---
 # vars file for provision-kvm-guest
+
+_provision_kvm_guest_generate_cloud_init_iso: "{{ provision_kvm_guest_generate_cloud_init_iso | bool }}"
